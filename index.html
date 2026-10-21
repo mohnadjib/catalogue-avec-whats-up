@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a2c">
+  <meta name="description" content="Classement des sites régionaux selon la demande d'Actors dans l'Apify Store.">
+  <title>Opportunités régionales — Apify Store</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #142238;
+      --muted: #64748b;
+      --line: #e1e8f0;
+      --paper: #ffffff;
+      --wash: #f3f6fb;
+      --navy: #101a2c;
+      --blue: #295de0;
+      --green: #087a59;
+      --amber: #946200;
+      --red: #9b3434;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--wash);
+      color: var(--ink);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    header {
+      background: var(--navy);
+      color: white;
+      padding: 42px max(22px, calc((100vw - 1180px) / 2));
+    }
+    .eyebrow { color: #a9c1ff; font-size: 12px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 9px 0 8px; font-size: clamp(30px, 4vw, 44px); line-height: 1.1; letter-spacing: -.035em; }
+    header p { max-width: 720px; margin: 0; color: #d1d9e8; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 22px 56px; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .metric { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+    .metric strong { display: block; font-size: 27px; line-height: 1.1; }
+    .metric span { color: var(--muted); font-size: 13px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 18px; border-bottom: 1px solid var(--line); }
+    .toolbar h2 { margin: 0; font-size: 18px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 9px; }
+    input, select, .download {
+      min-height: 40px; border: 1px solid #cbd5e1; border-radius: 9px; background: white;
+      color: var(--ink); font: inherit; padding: 8px 11px;
+    }
+    input { width: min(260px, 70vw); }
+    .download { display: inline-flex; align-items: center; text-decoration: none; font-weight: 650; color: var(--blue); }
+    .download:hover { background: #f5f8ff; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #f8faff; color: #53647d; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody tr:hover { background: #f8faff; }
+    td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .site-name { font-weight: 720; }
+    .domain { color: var(--muted); font-size: 12px; }
+    .badge { display: inline-block; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 750; white-space: nowrap; }
+    .opportunity { color: var(--green); background: #e4f6ef; }
+    .dominated { color: #43536d; background: #e9eef5; }
+    .unknown { color: var(--amber); background: #fff3d8; }
+    .uninteresting { color: #65748a; background: #edf1f5; }
+    a.actor { color: var(--blue); text-decoration: none; font-weight: 650; }
+    a.actor:hover { text-decoration: underline; }
+    .empty, .error { padding: 28px 18px; color: var(--muted); text-align: center; }
+    footer { color: var(--muted); font-size: 12px; padding: 16px 18px; }
+    @media (max-width: 720px) {
+      header { padding-top: 32px; padding-bottom: 32px; }
+      main { padding: 18px 12px 40px; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .metric { padding: 13px; }
+      .metric strong { font-size: 23px; }
+      .toolbar { align-items: flex-start; }
+      .controls { width: 100%; }
+      input { flex: 1; width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Recherche de marché · Apify Store</div>
+    <h1>Opportunités sur les sites régionaux</h1>
+    <p>Classement fondé sur les utilisateurs actifs des Actors correspondant aux sites. Une opportunité indique une demande observée et peu d’Actors bien notés; une demande inconnue n’est pas présentée comme un manque prouvé.</p>
+  </header>
+  <main>
+    <section class="summary" aria-label="Résumé du classement">
+      <div class="metric"><strong id="total">—</strong><span>sites analysés</span></div>
+      <div class="metric"><strong id="opportunities">—</strong><span>opportunités</span></div>
+      <div class="metric"><strong id="dominated">—</strong><span>sites dominés</span></div>
+      <div class="metric"><strong id="unknown">—</strong><span>demandes inconnues</span></div>
+    </section>
+
+    <section class="panel" aria-labelledby="table-title">
+      <div class="toolbar">
+        <h2 id="table-title">Classement des sites</h2>
+        <div class="controls">
+          <input id="search" type="search" placeholder="Filtrer par site ou pays" aria-label="Filtrer par site ou pays">
+          <select id="zone" aria-label="Filtrer par zone"><option value="">Toutes les zones</option></select>
+          <select id="classification" aria-label="Filtrer par classement">
+            <option value="">Tous les classements</option>
+            <option>OPPORTUNITÉ</option><option>DOMINÉ</option><option>DEMANDE INCONNUE</option><option>SANS INTÉRÊT</option>
+          </select>
+          <a class="download" href="./sites_regionaux.csv" download>Télécharger le CSV</a>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Rang</th><th>Site</th><th>Zone</th><th>Classement</th><th>Demande active 30 j</th>
+            <th>Actors forts / faibles</th><th>Bons Actors</th><th>Meilleur Actor</th>
+          </tr></thead>
+          <tbody id="results"><tr><td class="empty" colspan="8">Chargement du classement…</td></tr></tbody>
+        </table>
+      </div>
+      <footer>Les données viennent du fichier CSV fourni avec cette page. La faisabilité web, lorsqu’elle a été testée, est indicative et ne contourne aucune protection.</footer>
+    </section>
+  </main>
+  <script>
+    // Parse les champs CSV cités et les guillemets doublés sans dépendance externe.
+    function parseCsv(text) {
+      const rows = [];
+      let row = [], field = "", quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (quoted) {
+          if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (ch === '"') quoted = false;
+          else field += ch;
+        } else if (ch === '"') quoted = true;
+        else if (ch === ',') { row.push(field); field = ""; }
+        else if (ch === '\n') { row.push(field.replace(/\r$/, "")); rows.push(row); row = []; field = ""; }
+        else field += ch;
+      }
+      if (field.length || row.length) { row.push(field.replace(/\r$/, "")); rows.push(row); }
+      const headers = rows.shift() || [];
+      return rows.filter(values => values.length && values.some(value => value !== ""))
+        .map(values => Object.fromEntries(headers.map((key, index) => [key, values[index] ?? ""])));
+    }
+
+    const text = value => String(value ?? "");
+    const numeric = value => Number(value) || 0;
+    function badgeClass(value) {
+      if (value === "OPPORTUNITÉ") return "opportunity";
+      if (value === "DOMINÉ") return "dominated";
+      if (value === "DEMANDE INCONNUE") return "unknown";
+      return "uninteresting";
+    }
+    function td(className, value) {
+      const cell = document.createElement("td");
+      if (className) cell.className = className;
+      cell.textContent = text(value);
+      return cell;
+    }
+    function render(rows) {
+      const body = document.getElementById("results");
+      body.replaceChildren();
+      if (!rows.length) {
+        const tr = document.createElement("tr"), cell = td("empty", "Aucun site ne correspond aux filtres.");
+        cell.colSpan = 8; tr.append(cell); body.append(tr); return;
+      }
+      for (const item of rows) {
+        const tr = document.createElement("tr");
+        tr.append(td("num", item.rang));
+        const site = document.createElement("td"), name = document.createElement("div"), domain = document.createElement("div");
+        name.className = "site-name"; name.textContent = text(item.nom);
+        domain.className = "domain"; domain.textContent = text(item.domaine);
+        site.append(name, domain); tr.append(site);
+        tr.append(td("", `${text(item.zone)} · ${text(item.pays)}`));
+        const classification = document.createElement("td"), badge = document.createElement("span");
+        badge.className = `badge ${badgeClass(item.classement)}`; badge.textContent = text(item.classement);
+        classification.append(badge); tr.append(classification);
+        tr.append(td("num", numeric(item.demande_actifs_30j_forts).toLocaleString("fr-FR")));
+        tr.append(td("num", `${text(item.actors_forts)} / ${text(item.actors_faibles)}`));
+        tr.append(td("num", item.bons_actors_forts));
+        const actorCell = document.createElement("td");
+        if (item.url_meilleur_actor) {
+          const link = document.createElement("a"); link.className = "actor";
+          link.href = item.url_meilleur_actor; link.target = "_blank"; link.rel = "noopener noreferrer";
+          link.textContent = text(item.meilleur_actor); actorCell.append(link);
+        } else actorCell.textContent = "—";
+        tr.append(actorCell); body.append(tr);
+      }
+    }
+
+    fetch("./sites_regionaux.csv")
+      .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.text(); })
+      .then(csv => {
+        const rows = parseCsv(csv);
+        document.getElementById("total").textContent = rows.length;
+        document.getElementById("opportunities").textContent = rows.filter(row => row.classement === "OPPORTUNITÉ").length;
+        document.getElementById("dominated").textContent = rows.filter(row => row.classement === "DOMINÉ").length;
+        document.getElementById("unknown").textContent = rows.filter(row => row.classement === "DEMANDE INCONNUE").length;
+        const zones = [...new Set(rows.map(row => row.zone).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
+        const zoneSelect = document.getElementById("zone");
+        for (const zone of zones) { const option = document.createElement("option"); option.value = zone; option.textContent = zone; zoneSelect.append(option); }
+        const applyFilters = () => {
+          const query = document.getElementById("search").value.trim().toLocaleLowerCase("fr");
+          const zone = zoneSelect.value, classification = document.getElementById("classification").value;
+          render(rows.filter(row => (!query || `${row.nom} ${row.domaine} ${row.pays}`.toLocaleLowerCase("fr").includes(query))
+            && (!zone || row.zone === zone) && (!classification || row.classement === classification)));
+        };
+        document.getElementById("search").addEventListener("input", applyFilters);
+        zoneSelect.addEventListener("change", applyFilters);
+        document.getElementById("classification").addEventListener("change", applyFilters);
+        applyFilters();
+      })
+      .catch(error => {
+        const body = document.getElementById("results"), tr = document.createElement("tr"), cell = td("error", `Impossible de charger le CSV (${error.message}). Vérifie que sites_regionaux.csv se trouve à côté de cette page.`);
+        cell.colSpan = 8; tr.append(cell); body.replaceChildren(tr);
+      });
+  </script>
+</body>
+</html>

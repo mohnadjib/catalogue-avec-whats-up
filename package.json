@@ -1,0 +1,12 @@
+{
+  "name": "analyse-sites-regionaux",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tableau statique des opportunités Apify Store par site régional",
+  "scripts": {
+    "start": "serve --single --listen $PORT ."
+  },
+  "dependencies": {
+    "serve": "14.2.6"
+  }
+}
